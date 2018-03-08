@@ -3,7 +3,9 @@ var vm = new Vue({
 	data:{
 		totalMoney:0,
 		productList:[],
-		checkAllFlag:false
+		checkAllFlag:false,
+		delFlag:false,
+		curProduct: ''
 	},
 	filters:{
 		formatMoney:function(value){
@@ -20,7 +22,7 @@ var vm = new Vue({
 			var _this = this;
 			this.$http.get("data/cartData.json",{"id":123}).then(function(res){
 				_this.productList = res.data.result.list;
-				_this.totalMoney = res.data.result.totalMoney;
+				// _this.totalMoney = res.data.result.totalMoney;
 			});
 		},
 		changeMoney:function(product,way){
@@ -32,6 +34,7 @@ var vm = new Vue({
 					product.productQuantity = 1;
 				}
 			}
+			this.calcTotalMoeny();
 		},
 		selectedProduct:function(item){
 			if(typeof item.checked == "undefined"){
@@ -39,6 +42,7 @@ var vm = new Vue({
 			}else{
 				item.checked = !item.checked;
 			}
+			this.calcTotalMoeny();
 		},
 		checkAll:function(flag){
 			this.checkAllFlag = flag;
@@ -50,6 +54,31 @@ var vm = new Vue({
 					item.checked = _this.checkAllFlag;
 				}
 			});
+			this.calcTotalMoeny();
+		},
+		calcTotalMoeny:function(){
+			var _this = this;
+			this.totalMoney = 0;
+			this.productList.forEach(function(item,index){
+				if(item.checked){
+					_this.totalMoney += item.productQuantity * item.productPrice;
+				}
+			});
+		},
+		delConfirm:function(item){
+			this.delFlag = true;
+			this.curProduct = item;
+		},
+		delProduct:function(){
+			var index = this.productList.indexOf(this.curProduct);
+			// console.log(index);
+			this.productList.splice(index,1);
+			this.delFlag = false;
 		}
     }
+});
+
+//全局过滤器
+Vue.filter('money',function(value,type){
+	return "￥" + value.toFixed(2) + type;
 });
